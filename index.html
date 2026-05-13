@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falling Kana かな</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a1625;
+            color: #fff;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        canvas {
+            display: block;
+            background: linear-gradient(#0b1a2e, #112b4a);
+        }
+        
+        .overlay {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            width: 100%;
+            padding: 12px 30px;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 10;
+            pointer-events: none;
+            background: rgba(11, 26, 46, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 3px solid #1e90ff;
+            box-shadow: 0 4px 20px rgba(30, 144, 255, 0.4);
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .overlay > div {
+            text-shadow: 0 0 12px #1e90ff;
+            transition: transform 0.2s;
+        }
+        
+        .overlay > div:hover {
+            transform: scale(1.05);
+        }
+        
+        .menu-icon, .restart-btn {
+            font-size: 36px;
+            cursor: pointer;
+            pointer-events: all;
+            padding: 8px 14px;
+            border-radius: 50%;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px #1e90ff;
+        }
+        
+        .menu-icon:hover, .restart-btn:hover {
+            background: rgba(30, 144, 255, 0.3);
+            transform: rotate(20deg) scale(1.1);
+        }
+        
+        #inputDisplay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 32px;
+            letter-spacing: 6px;
+            background: rgba(0,0,0,0.5);
+            padding: 12px 40px;
+            border-radius: 12px;
+            min-width: 120px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(30, 144, 255, 0.4);
+            z-index: 20;
+            transition: color 0.3s;
+            display: none;
+        }
+        
+        .center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 30;
+            pointer-events: all;
+        }
+        
+        button {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: linear-gradient(#1e90ff, #3ab0ff);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 0 20px #1e90ff;
+            transition: all 0.3s;
+        }
+        
+        button:hover { 
+            background: linear-gradient(#3ab0ff, #1e90ff);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px #1e90ff;
+        }
+        
+        #menu {
+            position: absolute;
+            top: 80px;
+            right: 30px;
+            background: rgba(11, 26, 46, 0.92);
+            backdrop-filter: blur(16px);
+            border: 3px solid #1e90ff;
+            border-radius: 20px;
+            padding: 24px;
+            width: 360px;
+            display: none;
+            z-index: 40;
+            box-shadow: 0 0 40px rgba(30, 144, 255, 0.6);
+            color: #fff;
+        }
+        
+        #menu::before {
+            content: "⚙️ GAME OPTIONS";
+            display: block;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 18px;
+            color: #1e90ff;
+            text-shadow: 0 0 12px #1e90ff;
+            letter-spacing: 2px;
+        }
+        
+        .menu-item {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            accent-color: #1e90ff;
+            height: 8px;
+            border-radius: 9999px;
+            background: #112b4a;
+        }
+        
+        .value {
+            float: right;
+            font-weight: bold;
+            color: #1e90ff;
+            text-shadow: 0 0 8px #1e90ff;
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-size: 20px;
+            cursor: pointer;
+            gap: 10px;
+        }
+        
+        input[type="checkbox"] {
+            accent-color: #1e90ff;
+            width: 22px;
+            height: 22px;
+        }
+        
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .stepper button {
+            width: 40px;
+            height: 40px;
+            font-size: 24px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .stepper input {
+            width: 80px;
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #1e90ff;
+            border-radius: 8px;
+            color: #fff;
+        }
+        
+        #congrats {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 50;
+            display: none;
+        }
+        
+        .hint {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: #ffeb3b;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 22px;
+            pointer-events: none;
+            z-index: 60;
+            white-space: nowrap;
+            box-shadow: 0 0 15px #ffeb3b;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="overlay">
+        <div>Score: <span id="score">0</span></div>
+        <div>Level <span id="level">1</span></div>
+        <div>Accuracy: <span id="accuracy">0</span>%</div>
+        <div>Correct: <span id="typed">0</span> Missed: <span id="missed">0</span></div>
+        <div>Kana left: <span id="left">—</span></div>
+        <div>Lives: ∞</div>
+        <div style="display:flex; gap:12px;">
+            <div class="restart-btn" id="restartBtn">⟳</div>
+            <div class="menu-icon" id="menuIcon">☰</div>
+        </div>
+    </div>
+    
+    <div id="inputDisplay"></div>
+
+    <!-- Options Menu -->
+    <div id="menu">
+        <div class="menu-item">
+            <label>Level: </label>
+            <div class="stepper">
+                <button onclick="changeLevel(-1)">–</button>
+                <input type="number" id="levelInput" min="1" max="20" value="1" onchange="setLevel(this.value)">
+                <button onclick="changeLevel(1)">+</button>
+            </div>
+        </div>
+        <div class="menu-item">
+            <label>Kana per minute: <span id="spawnValue" class="value">60</span></label>
+            <input type="range" id="spawnSlider" min="20" max="300" value="60" step="5">
+        </div>
+        <div class="menu-item">
+            <label>Fall time (seconds): <span id="fallValue" class="value">6</span></label>
+            <input type="range" id="fallSlider" min="2" max="20" value="6" step="0.5">
+        </div>
+        <div class="menu-item">
+            <label class="checkbox-label">
+                <input type="checkbox" id="hiraganaCheck" checked> Include Hiragana
+            </label>
+        </div>
+        <div class="menu-item">
+            <label class="checkbox-label">
+                <input type="checkbox" id="katakanaCheck" checked> Include Katakana
+            </label>
+        </div>
+        <div class="menu-item">
+            <label class="checkbox-label">
+                <input type="checkbox" id="kanjiCheck"> Include Kanji
+            </label>
+        </div>
+        <div class="menu-item">
+            <label class="checkbox-label">
+                <input type="checkbox" id="noRepeatCheck"> No repeats in this game
+            </label>
+        </div>
+    </div>
+
+    <div id="startScreen" class="center">
+        <h1 style="font-size:78px; margin:0; color:#fff; text-shadow: 0 0 30px #1e90ff;">Falling Kana</h1>
+        <p style="font-size:28px; margin:25px 0;">Type the romaji before they reach the bottom!</p>
+        <button id="startButton">Start Game</button>
+    </div>
+
+    <div id="congrats" class="center">
+        <h2 style="font-size:52px; color:#00ff88;">Congratulations!</h2>
+        <p style="font-size:28px;">You have correctly typed all kana!</p>
+        <button onclick="fullRestart()">Play Again</button>
+    </div>
+
+    <div id="gameOverScreen" class="center" style="display:none;">
+        <h2 style="font-size:52px;">Game Over</h2>
+        <p style="font-size:28px;">Final Score: <span id="finalScore">0</span></p>
+        <button id="restartButton">Play Again</button>
+    </div>
+
+    <div id="hoverHint" class="hint" style="display:none;"></div>
+
+<script>
+// =====================================================
+// FALLING KANA — Final Version with Enter-to-Submit Kanji + Instant Next Kanji
+// =====================================================
+
+// ==================== DATABASE ====================
+const kanaData = [
+    {char:"あ",romaji:"a"},{char:"い",romaji:"i"},{char:"う",romaji:"u"},{char:"え",romaji:"e"},{char:"お",romaji:"o"},
+    {char:"か",romaji:"ka"},{char:"き",romaji:"ki"},{char:"く",romaji:"ku"},{char:"け",romaji:"ke"},{char:"こ",romaji:"ko"},
+    {char:"さ",romaji:"sa"},{char:"し",romaji:"shi"},{char:"す",romaji:"su"},{char:"せ",romaji:"se"},{char:"そ",romaji:"so"},
+    {char:"た",romaji:"ta"},{char:"ち",romaji:"chi"},{char:"つ",romaji:"tsu"},{char:"て",romaji:"te"},{char:"と",romaji:"to"},
+    {char:"な",romaji:"na"},{char:"に",romaji:"ni"},{char:"ぬ",romaji:"nu"},{char:"ね",romaji:"ne"},{char:"の",romaji:"no"},
+    {char:"は",romaji:"ha"},{char:"ひ",romaji:"hi"},{char:"ふ",romaji:"fu"},{char:"へ",romaji:"he"},{char:"ほ",romaji:"ho"},
+    {char:"ま",romaji:"ma"},{char:"み",romaji:"mi"},{char:"む",romaji:"mu"},{char:"め",romaji:"me"},{char:"も",romaji:"mo"},
+    {char:"や",romaji:"ya"},{char:"ゆ",romaji:"yu"},{char:"よ",romaji:"yo"},
+    {char:"ら",romaji:"ra"},{char:"り",romaji:"ri"},{char:"る",romaji:"ru"},{char:"れ",romaji:"re"},{char:"ろ",romaji:"ro"},
+    {char:"わ",romaji:"wa"},{char:"を",romaji:"wo"},{char:"ん",romaji:"n"},
+    {char:"が",romaji:"ga"},{char:"ぎ",romaji:"gi"},{char:"ぐ",romaji:"gu"},{char:"げ",romaji:"ge"},{char:"ご",romaji:"go"},
+    {char:"ざ",romaji:"za"},{char:"じ",romaji:"ji"},{char:"ず",romaji:"zu"},{char:"ぜ",romaji:"ze"},{char:"ぞ",romaji:"zo"},
+    {char:"だ",romaji:"da"},{char:"ぢ",romaji:"ji"},{char:"づ",romaji:"zu"},{char:"で",romaji:"de"},{char:"ど",romaji:"do"},
+    {char:"ば",romaji:"ba"},{char:"び",romaji:"bi"},{char:"ぶ",romaji:"bu"},{char:"べ",romaji:"be"},{char:"ぼ",romaji:"bo"},
+    {char:"ぱ",romaji:"pa"},{char:"ぴ",romaji:"pi"},{char:"ぷ",romaji:"pu"},{char:"ぺ",romaji:"pe"},{char:"ぽ",romaji:"po"},
+    {char:"ア",romaji:"a"},{char:"イ",romaji:"i"},{char:"ウ",romaji:"u"},{char:"エ",romaji:"e"},{char:"オ",romaji:"o"},
+    {char:"カ",romaji:"ka"},{char:"キ",romaji:"ki"},{char:"ク",romaji:"ku"},{char:"ケ",romaji:"ke"},{char:"コ",romaji:"ko"},
+    {char:"サ",romaji:"sa"},{char:"シ",romaji:"shi"},{char:"ス",romaji:"su"},{char:"セ",romaji:"se"},{char:"ソ",romaji:"so"},
+    {char:"タ",romaji:"ta"},{char:"チ",romaji:"chi"},{char:"ツ",romaji:"tsu"},{char:"テ",romaji:"te"},{char:"ト",romaji:"to"},
+    {char:"ナ",romaji:"na"},{char:"ニ",romaji:"ni"},{char:"ヌ",romaji:"nu"},{char:"ネ",romaji:"ne"},{char:"ノ",romaji:"no"},
+    {char:"ハ",romaji:"ha"},{char:"ヒ",romaji:"hi"},{char:"フ",romaji:"fu"},{char:"ヘ",romaji:"he"},{char:"ホ",romaji:"ho"},
+    {char:"マ",romaji:"ma"},{char:"ミ",romaji:"mi"},{char:"ム",romaji:"mu"},{char:"メ",romaji:"me"},{char:"モ",romaji:"mo"},
+    {char:"ヤ",romaji:"ya"},{char:"ユ",romaji:"yu"},{char:"ヨ",romaji:"yo"},
+    {char:"ラ",romaji:"ra"},{char:"リ",romaji:"ri"},{char:"ル",romaji:"ru"},{char:"レ",romaji:"re"},{char:"ロ",romaji:"ro"},
+    {char:"ワ",romaji:"wa"},{char:"ヲ",romaji:"wo"},{char:"ン",romaji:"n"},
+    {char:"ガ",romaji:"ga"},{char:"ギ",romaji:"gi"},{char:"グ",romaji:"gu"},{char:"ゲ",romaji:"ge"},{char:"ゴ",romaji:"go"},
+    {char:"ザ",romaji:"za"},{char:"ジ",romaji:"ji"},{char:"ズ",romaji:"zu"},{char:"ゼ",romaji:"ze"},{char:"ゾ",romaji:"zo"},
+    {char:"ダ",romaji:"da"},{char:"ヂ",romaji:"ji"},{char:"ヅ",romaji:"zu"},{char:"デ",romaji:"de"},{char:"ド",romaji:"do"},
+    {char:"バ",romaji:"ba"},{char:"ビ",romaji:"bi"},{char:"ブ",romaji:"bu"},{char:"ベ",romaji:"be"},{char:"ボ",romaji:"bo"},
+    {char:"パ",romaji:"pa"},{char:"ピ",romaji:"pi"},{char:"プ",romaji:"pu"},{char:"ペ",romaji:"pe"},{char:"ポ",romaji:"po"}
+];
+
+const kanjiData = [
+    {char:"日本",romaji:"nihon"},{char:"猫",romaji:"neko"},{char:"犬",romaji:"inu"},{char:"家",romaji:"ie"},
+    {char:"木",romaji:"ki"},{char:"山",romaji:"yama"},{char:"川",romaji:"kawa"},{char:"海",romaji:"umi"},
+    {char:"花",romaji:"hana"},{char:"駅",romaji:"eki"},{char:"電車",romaji:"densha"},{char:"地下鉄",romaji:"chikatetsu"},
+    {char:"入口",romaji:"iriguchi"},{char:"出口",romaji:"deguchi"},{char:"非常口",romaji:"hijouguchi"},
+    {char:"男",romaji:"otoko"},{char:"女",romaji:"onna"},{char:"トイレ",romaji:"toire"},{char:"肉",romaji:"niku"},
+    {char:"魚",romaji:"sakana"},{char:"牛",romaji:"gyuu"},{char:"豚",romaji:"buta"},{char:"鳥",romaji:"tori"},
+    {char:"酒",romaji:"sake"},{char:"水",romaji:"mizu"},{char:"食",romaji:"shoku"},{char:"飲",romaji:"in"},
+    {char:"店",romaji:"mise"},{char:"寺",romaji:"tera"},{char:"神社",romaji:"jinja"},{char:"禁止",romaji:"kinshi"},
+    {char:"注意",romaji:"chuui"},{char:"右",romaji:"migi"},{char:"左",romaji:"hidari"},{char:"道",romaji:"michi"},
+    {char:"橋",romaji:"hashi"},{char:"空港",romaji:"kukou"},{char:"銀行",romaji:"ginkou"},{char:"病院",romaji:"byouin"},
+    {char:"警察",romaji:"keisatsu"}
+];
+
+// ==================== GAME VARIABLES ====================
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let falling = [];
+let particles = [];
+let score = 0;
+let level = 1;
+let combo = 0;
+let typed = 0;
+let missed = 0;
+let gameRunning = false;
+let lastSpawn = 0;
+let inputBuffer = "";
+let spawnRate = 60;
+let fallTime = 6;
+let includeHiragana = true;
+let includeKatakana = true;
+let includeKanji = false;
+let noRepeats = false;
+let seenThisGame = new Set();
+let activeKana = new Set();
+let totalAvailableKana = 0;
+let remainingHira = [];
+let remainingKata = [];
+let currentKanjiIndex = -1;
+
+const MAX_ACTIVE_KANA = 80;
+const MAX_PARTICLES = 1200;
+const SIDEBAR_LEFT_WIDTH = 240;
+const SIDEBAR_RIGHT_WIDTH = 240;
+
+let demoFalling = [];
+let hoverHintEl = document.getElementById("hoverHint");
+
+// ==================== RESIZE & MENU ====================
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+const menu = document.getElementById("menu");
+const menuIcon = document.getElementById("menuIcon");
+const spawnSlider = document.getElementById("spawnSlider");
+const spawnValue = document.getElementById("spawnValue");
+const fallSlider = document.getElementById("fallSlider");
+const fallValue = document.getElementById("fallValue");
+const hiraganaCheck = document.getElementById("hiraganaCheck");
+const katakanaCheck = document.getElementById("katakanaCheck");
+const kanjiCheck = document.getElementById("kanjiCheck");
+const noRepeatCheck = document.getElementById("noRepeatCheck");
+const levelInput = document.getElementById("levelInput");
+
+menuIcon.addEventListener("click", (e) => {
+    e.stopImmediatePropagation();
+    menu.style.display = (menu.style.display === "block") ? "none" : "block";
+});
+
+document.addEventListener("click", (e) => {
+    if (menu.style.display === "block" && !menu.contains(e.target) && e.target !== menuIcon) {
+        menu.style.display = "none";
+    }
+});
+
+function saveSettings() {
+    try {
+        localStorage.setItem("kanaSpawnRate", spawnRate);
+        localStorage.setItem("kanaFallTime", fallTime);
+        localStorage.setItem("includeHiragana", includeHiragana);
+        localStorage.setItem("includeKatakana", includeKatakana);
+        localStorage.setItem("includeKanji", includeKanji);
+        localStorage.setItem("noRepeats", noRepeats);
+    } catch (e) {}
+}
+
+spawnSlider.addEventListener("input", () => {
+    spawnRate = parseInt(spawnSlider.value);
+    spawnValue.textContent = spawnRate;
+    saveSettings();
+});
+
+fallSlider.addEventListener("input", () => {
+    fallTime = parseFloat(fallSlider.value);
+    fallValue.textContent = fallTime;
+    saveSettings();
+    const newSpeed = canvas.height / (fallTime * 60);
+    falling.forEach(k => { if (k.state === "falling") k.speed = newSpeed; });
+});
+
+// Mutual exclusivity
+hiraganaCheck.addEventListener("change", () => {
+    includeHiragana = hiraganaCheck.checked;
+    if (includeHiragana) { includeKanji = false; kanjiCheck.checked = false; }
+    saveSettings();
+    if (gameRunning) resetGame();
+});
+
+katakanaCheck.addEventListener("change", () => {
+    includeKatakana = katakanaCheck.checked;
+    if (includeKatakana) { includeKanji = false; kanjiCheck.checked = false; }
+    saveSettings();
+    if (gameRunning) resetGame();
+});
+
+kanjiCheck.addEventListener("change", () => {
+    includeKanji = kanjiCheck.checked;
+    if (includeKanji) {
+        includeHiragana = false;
+        includeKatakana = false;
+        hiraganaCheck.checked = false;
+        katakanaCheck.checked = false;
+    }
+    saveSettings();
+    if (gameRunning) resetGame();
+});
+
+noRepeatCheck.addEventListener("change", () => {
+    noRepeats = noRepeatCheck.checked;
+    saveSettings();
+});
+
+function loadSettings() {
+    try {
+        const savedSpawn = localStorage.getItem("kanaSpawnRate");
+        if (savedSpawn) { spawnRate = parseInt(savedSpawn); spawnSlider.value = spawnRate; spawnValue.textContent = spawnRate; }
+        
+        const savedFall = localStorage.getItem("kanaFallTime");
+        if (savedFall) { fallTime = parseFloat(savedFall); fallSlider.value = fallTime; fallValue.textContent = fallTime; }
+        
+        const savedHira = localStorage.getItem("includeHiragana");
+        if (savedHira !== null) { includeHiragana = (savedHira === "true"); hiraganaCheck.checked = includeHiragana; }
+        
+        const savedKata = localStorage.getItem("includeKatakana");
+        if (savedKata !== null) { includeKatakana = (savedKata === "true"); katakanaCheck.checked = includeKatakana; }
+        
+        const savedKanji = localStorage.getItem("includeKanji");
+        if (savedKanji !== null) { includeKanji = (savedKanji === "true"); kanjiCheck.checked = includeKanji; }
+        
+        const savedNoRepeat = localStorage.getItem("noRepeats");
+        if (savedNoRepeat !== null) { noRepeats = (savedNoRepeat === "true"); noRepeatCheck.checked = noRepeats; }
+    } catch (e) {}
+}
+
+// ==================== LEVEL STEPPER ====================
+function changeLevel(delta) {
+    let current = parseInt(levelInput.value);
+    let newLevel = Math.max(1, Math.min(20, current + delta));
+    levelInput.value = newLevel;
+    setLevel(newLevel);
+}
+
+function setLevel(lvl) {
+    spawnRate = Math.round(30 + (lvl - 1) * (170 / 19));
+    fallTime = Math.max(5, Math.round(20 - (lvl - 1) * (15 / 19)));
+    
+    spawnSlider.value = spawnRate;
+    spawnValue.textContent = spawnRate;
+    fallSlider.value = fallTime;
+    fallValue.textContent = fallTime;
+    
+    saveSettings();
+    
+    const newSpeed = canvas.height / (fallTime * 60);
+    falling.forEach(k => { if (k.state === "falling") k.speed = newSpeed; });
+}
+
+// ==================== HELPERS ====================
+function getAvailableCount() {
+    if (includeKanji) return kanjiData.length;
+    return kanaData.filter(k => {
+        if (!includeHiragana && k.char.match(/[\u3040-\u309F]/)) return false;
+        if (!includeKatakana && k.char.match(/[\u30A0-\u30FF]/)) return false;
+        return true;
+    }).length;
+}
+
+function populateRemaining() {
+    remainingHira = [];
+    remainingKata = [];
+    if (!noRepeats) return;
+    
+    if (includeHiragana) {
+        let hiraList = kanaData.filter(k => k.char.match(/[\u3040-\u309F]/));
+        const perCol = Math.ceil(hiraList.length / 3);
+        hiraList.forEach((k, i) => {
+            const col = Math.floor(i / perCol);
+            const row = i % perCol;
+            remainingHira.push({ ...k, x: 70 + col * 55, y: 140 + row * 42, size: 28 });
+        });
+    }
+    
+    if (includeKatakana) {
+        let kataList = kanaData.filter(k => k.char.match(/[\u30A0-\u30FF]/));
+        const perCol = Math.ceil(kataList.length / 3);
+        kataList.forEach((k, i) => {
+            const col = Math.floor(i / perCol);
+            const row = i % perCol;
+            remainingKata.push({ ...k, x: canvas.width - 70 - col * 55, y: 140 + row * 42, size: 28 });
+        });
+    }
+}
+
+function randomItem() {
+    if (includeKanji) {
+        if (currentKanjiIndex !== -1) return null;
+        return kanjiData[Math.floor(Math.random() * kanjiData.length)];
+    }
+    
+    let candidates = kanaData.filter(k => {
+        if (!includeHiragana && k.char.match(/[\u3040-\u309F]/)) return false;
+        if (!includeKatakana && k.char.match(/[\u30A0-\u30FF]/)) return false;
+        return true;
+    });
+    
+    if (candidates.length === 0) {
+        return {char: ["\u1f338","\u1f337","\u1f33a","\u1f33c","\u1f33b","\u1f339"][Math.floor(Math.random()*6)], romaji: ""};
+    }
+    
+    if (noRepeats) candidates = candidates.filter(k => !seenThisGame.has(k.char));
+    if (candidates.length === 0) return null;
+    
+    return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+function spawnItem(isDemo = false) {
+    if (!isDemo && falling.length >= MAX_ACTIVE_KANA) return;
+    
+    const item = randomItem();
+    if (!item) return;
+    
+    const targetArray = isDemo ? demoFalling : falling;
+    
+    if (!isDemo) {
+        if (includeKanji) currentKanjiIndex = kanjiData.findIndex(k => k.char === item.char);
+        else activeKana.add(item.char);
+    }
+    
+    let safeX;
+    const leftEdge = SIDEBAR_LEFT_WIDTH;
+    const rightEdge = canvas.width - SIDEBAR_RIGHT_WIDTH;
+    do { safeX = Math.random() * (canvas.width - 140) + 70; } while (safeX < leftEdge || safeX > rightEdge);
+    
+    const baseSpeed = canvas.height / (fallTime * 60);
+    
+    targetArray.push({
+        char: item.char,
+        romaji: item.romaji,
+        x: safeX,
+        y: -70,
+        speed: baseSpeed + Math.random() * 0.6,
+        size: includeKanji ? 68 : (item.romaji ? 58 + Math.random() * 16 : 48),
+        state: "falling",
+        pauseUntil: 0,
+        isKanji: includeKanji
+    });
+}
+
+function createExplosion(x, y, char, isRomajiDissolve = false) {
+    const count = isRomajiDissolve ? 24 : 20;
+    const baseColor = isRomajiDissolve ? "#ffeb3b" : "#a0d8ff";
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const vel = isRomajiDissolve ? 1.5 + Math.random() * 3.5 : 2 + Math.random() * 5;
+        particles.push({
+            x, y,
+            vx: Math.cos(angle) * vel,
+            vy: Math.sin(angle) * vel - (isRomajiDissolve ? 1 : 2),
+            life: isRomajiDissolve ? 55 + Math.random() * 25 : 35 + Math.random() * 20,
+            size: 7 + Math.random() * 12,
+            char, alpha: 1, color: baseColor,
+            gravity: isRomajiDissolve ? 0.22 : 0.18
+        });
+    }
+}
+
+function createInvalidExplosion(text, baseX, baseY) {
+    const letters = text.split('');
+    const spacing = 22;
+    for (let idx = 0; idx < letters.length; idx++) {
+        const letterX = baseX + (idx - letters.length / 2) * spacing;
+        for (let i = 0; i < 12; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const vel = 2.5 + Math.random() * 4.5;
+            particles.push({
+                x: letterX, y: baseY,
+                vx: Math.cos(angle) * vel,
+                vy: Math.sin(angle) * vel - 2,
+                life: 38 + Math.random() * 22,
+                size: 9 + Math.random() * 9,
+                char: letters[idx], alpha: 1, color: "#ff4444", gravity: 0.18
+            });
+        }
+    }
+}
+
+function createSuccessExplosion(text, baseX, baseY) {
+    const letters = text.split('');
+    const spacing = 22;
+    for (let idx = 0; idx < letters.length; idx++) {
+        const letterX = baseX + (idx - letters.length / 2) * spacing;
+        for (let i = 0; i < 14; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const vel = 3 + Math.random() * 5;
+            particles.push({
+                x: letterX, y: baseY,
+                vx: Math.cos(angle) * vel,
+                vy: Math.sin(angle) * vel - 3,
+                life: 45 + Math.random() * 25,
+                size: 10 + Math.random() * 10,
+                char: letters[idx], alpha: 1, color: "#00ff88", gravity: 0.12
+            });
+        }
+    }
+}
+
+// ==================== INPUT (KANJI ENTER-TO-SUBMIT + COLOR FEEDBACK) ====================
+document.addEventListener("keydown", (e) => {
+    if (!gameRunning) return;
+    const inputEl = document.getElementById("inputDisplay");
+
+    const isKanjiActive = falling.some(item => item.isKanji && item.state === "falling");
+
+    if (e.key === "Enter" && isKanjiActive) {
+        const kanjiItem = falling.find(item => item.isKanji && item.state === "falling");
+        
+        if (kanjiItem && inputBuffer === kanjiItem.romaji) {
+            score += 10 + Math.floor(combo * 2);
+            combo++;
+            typed++;
+            createSuccessExplosion(inputBuffer, canvas.width / 2, canvas.height / 2);
+            createExplosion(kanjiItem.x, kanjiItem.y, kanjiItem.char);
+            currentKanjiIndex = -1;
+            if (noRepeats && kanjiItem.romaji) seenThisGame.add(kanjiItem.char);
+            
+            falling = falling.filter(item => item !== kanjiItem);
+            inputBuffer = "";
+            inputEl.style.color = "#fff";
+            updateUI();
+            
+            if (noRepeats && totalAvailableKana > 0 && seenThisGame.size >= totalAvailableKana) {
+                showCongratulations();
+            }
+        } else {
+            inputEl.style.color = "#ff4444";
+            createInvalidExplosion(inputBuffer, canvas.width / 2, canvas.height / 2);
+            missed++;
+            updateUI();
+            inputBuffer = "";
+            setTimeout(() => { inputEl.style.color = "#fff"; }, 350);
+        }
+        return;
+    }
+
+    if (e.key === "Backspace") {
+        inputBuffer = inputBuffer.slice(0, -1);
+    } else if (/^[a-z]$/i.test(e.key)) {
+        inputBuffer += e.key.toLowerCase();
+    } else {
+        return;
+    }
+
+    if (isKanjiActive) {
+        const kanjiItem = falling.find(item => item.isKanji && item.state === "falling");
+        if (kanjiItem) {
+            if (kanjiItem.romaji.startsWith(inputBuffer)) {
+                inputEl.style.color = "#00ff88";
+            } else {
+                inputEl.style.color = "#ff4444";
+            }
+        }
+    } else {
+        let bestIndex = -1;
+        let bestY = -Infinity;
+        for (let i = falling.length - 1; i >= 0; i--) {
+            if (falling[i].state === "falling" && falling[i].romaji === inputBuffer) {
+                if (falling[i].y > bestY) { bestY = falling[i].y; bestIndex = i; }
+            }
+        }
+
+        if (bestIndex !== -1) {
+            const item = falling[bestIndex];
+            score += 10 + Math.floor(combo * 2);
+            combo++;
+            typed++;
+            createSuccessExplosion(inputBuffer, canvas.width / 2, canvas.height / 2);
+            createExplosion(item.x, item.y, item.char);
+            activeKana.delete(item.char);
+            if (noRepeats && item.romaji) seenThisGame.add(item.char);
+
+            let found = false;
+            for (let j = remainingHira.length - 1; j >= 0; j--) {
+                if (remainingHira[j].char === item.char) {
+                    createExplosion(remainingHira[j].x, remainingHira[j].y, item.char);
+                    remainingHira.splice(j, 1);
+                    found = true; break;
+                }
+            }
+            if (!found) {
+                for (let j = remainingKata.length - 1; j >= 0; j--) {
+                    if (remainingKata[j].char === item.char) {
+                        createExplosion(remainingKata[j].x, remainingKata[j].y, item.char);
+                        remainingKata.splice(j, 1); break;
+                    }
+                }
+            }
+
+            falling.splice(bestIndex, 1);
+            inputBuffer = "";
+            inputEl.style.color = "#fff";
+            updateUI();
+            
+            if (noRepeats && totalAvailableKana > 0 && seenThisGame.size >= totalAvailableKana) {
+                showCongratulations();
+            }
+        } else {
+            let isInvalid = false;
+            const len = inputBuffer.length;
+            if (len === 1) {
+                if ("aeiou".includes(inputBuffer)) {
+                    if (!falling.some(item => item.state === "falling" && item.romaji === inputBuffer)) isInvalid = true;
+                }
+            } else if (len === 2) {
+                const prefix = inputBuffer;
+                if (prefix !== "ch" && prefix !== "sh" && prefix !== "ts") {
+                    if (!falling.some(item => item.state === "falling" && item.romaji === prefix)) isInvalid = true;
+                }
+            } else if (len === 3) {
+                if (!falling.some(item => item.state === "falling" && item.romaji === inputBuffer)) isInvalid = true;
+            } else if (len > 3) {
+                isInvalid = true;
+            }
+
+            if (isInvalid) {
+                inputEl.style.color = "#ff4444";
+                createInvalidExplosion(inputBuffer, canvas.width / 2, canvas.height / 2);
+                inputBuffer = "";
+                setTimeout(() => { inputEl.style.color = "#fff"; }, 350);
+                updateUI();
+            } else {
+                inputEl.style.color = "#fff";
+            }
+        }
+    }
+
+    inputEl.textContent = inputBuffer;
+});
+
+// Hover hint for Kanji
+canvas.addEventListener("mousemove", e => {
+    if (!gameRunning || !includeKanji) { hoverHintEl.style.display = "none"; return; }
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    hoverHintEl.style.display = "none";
+    for (let i = falling.length - 1; i >= 0; i--) {
+        const item = falling[i];
+        if (item.isKanji && item.state === "falling") {
+            const dx = mx - item.x;
+            const dy = my - item.y;
+            if (dx*dx + dy*dy < 1800) {
+                hoverHintEl.textContent = item.romaji;
+                hoverHintEl.style.left = (e.clientX + 15) + "px";
+                hoverHintEl.style.top = (e.clientY - 30) + "px";
+                hoverHintEl.style.display = "block";
+                return;
+            }
+        }
+    }
+});
+
+// ==================== DRAW ====================
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const drawArray = gameRunning ? falling : demoFalling;
+
+    for (let i = drawArray.length - 1; i >= 0; i--) {
+        const item = drawArray[i];
+        if (item.state === "falling") {
+            ctx.shadowColor = "#1e90ff";
+            ctx.shadowBlur = 18;
+            ctx.font = `bold ${item.size}px 'Noto Sans JP'`;
+            ctx.fillStyle = "#ffffff";
+            ctx.fillText(item.char, item.x, item.y);
+        } else {
+            ctx.shadowColor = "#ffeb3b";
+            ctx.shadowBlur = 14;
+            ctx.font = `bold ${item.size * 0.78}px Arial`;
+            ctx.fillStyle = "#ffeb3b";
+            ctx.fillText(item.romaji.toUpperCase(), item.x, item.y);
+        }
+        ctx.shadowBlur = 0;
+    }
+
+    if (noRepeats) {
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#a0d8ff";
+        ctx.fillStyle = "#a0d8ff";
+        ctx.font = `bold 28px 'Noto Sans JP'`;
+        for (let i = remainingHira.length - 1; i >= 0; i--) ctx.fillText(remainingHira[i].char, remainingHira[i].x, remainingHira[i].y);
+        for (let i = remainingKata.length - 1; i >= 0; i--) ctx.fillText(remainingKata[i].char, remainingKata[i].x, remainingKata[i].y);
+        ctx.shadowBlur = 0;
+    }
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.life--;
+        p.alpha = Math.max(0, p.life / 55);
+        ctx.globalAlpha = p.alpha;
+        ctx.shadowColor = p.color; ctx.shadowBlur = 8;
+        ctx.font = `bold ${p.size}px 'Noto Sans JP'`;
+        ctx.fillStyle = p.color;
+        ctx.fillText(p.char, p.x, p.y);
+        ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+    if (particles.length > MAX_PARTICLES) particles.length = MAX_PARTICLES;
+}
+
+// ==================== GAME LOOP (WITH INSTANT NEXT KANJI) ====================
+function gameLoop() {
+    if (!gameRunning) {
+        draw();
+        const now = Date.now();
+        if (now - lastSpawn > (60000 / spawnRate)) {
+            spawnItem(true);
+            if (Math.random() < 0.35) spawnItem(true);
+            lastSpawn = now;
+        }
+        for (let i = demoFalling.length - 1; i >= 0; i--) {
+            demoFalling[i].y += demoFalling[i].speed;
+            if (demoFalling[i].y > canvas.height + 100) demoFalling.splice(i, 1);
+        }
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+
+    draw();
+    const now = Date.now();
+
+    for (let i = falling.length - 1; i >= 0; i--) {
+        const item = falling[i];
+        if (item.state === "falling") {
+            item.y += item.speed;
+            if (item.y >= canvas.height - 150) {
+                item.state = "romaji";
+                item.y = canvas.height - 150;
+                item.pauseUntil = now + 1000;
+                combo = 0; missed++;
+                if (item.isKanji) currentKanjiIndex = -1;
+                else activeKana.delete(item.char);
+                updateUI();
+            }
+        } else if (now > item.pauseUntil) {
+            createExplosion(item.x, item.y, item.romaji.toUpperCase(), true);
+            falling.splice(i, 1);
+        }
+    }
+
+    // === INSTANT NEXT KANJI (no waiting) ===
+    if (includeKanji && currentKanjiIndex === -1) {
+        spawnItem();
+    } else if (now - lastSpawn > (60000 / spawnRate)) {
+        if (!includeKanji && falling.length < MAX_ACTIVE_KANA) {
+            spawnItem();
+        }
+        lastSpawn = now;
+    }
+
+    if (score > level * 140) { level++; updateUI(); }
+    requestAnimationFrame(gameLoop);
+}
+
+// ==================== UI ====================
+function updateUI() {
+    document.getElementById("score").textContent = score;
+    document.getElementById("level").textContent = level;
+    document.getElementById("typed").textContent = typed;
+    document.getElementById("missed").textContent = missed;
+
+    const total = typed + missed;
+    const acc = total > 0 ? Math.round((typed / total) * 100) : 0;
+    document.getElementById("accuracy").textContent = acc;
+
+    const leftEl = document.getElementById("left");
+    if (noRepeats && totalAvailableKana > 0) {
+        leftEl.textContent = Math.max(0, totalAvailableKana - seenThisGame.size);
+    } else {
+        leftEl.textContent = "—";
+    }
+}
+
+function showCongratulations() {
+    gameRunning = false;
+    document.getElementById("congrats").style.display = "block";
+    menu.style.display = "block";
+}
+
+// ==================== GAME CONTROL ====================
+function resetGame() {
+    falling = [];
+    particles = [];
+    activeKana.clear();
+    seenThisGame.clear();
+    currentKanjiIndex = -1;
+    totalAvailableKana = getAvailableCount();
+    populateRemaining();
+    score = 0; level = 1; combo = 0; typed = 0; missed = 0;
+    lastSpawn = Date.now();
+    updateUI();
+}
+
+function startGame() {
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("inputDisplay").style.display = "block";
+    menu.style.display = "none";
+    gameRunning = true;
+    demoFalling = [];
+    resetGame();
+    requestAnimationFrame(gameLoop);
+}
+
+function fullRestart() {
+    document.getElementById("gameOverScreen").style.display = "none";
+    document.getElementById("congrats").style.display = "none";
+    document.getElementById("inputDisplay").style.display = "none";
+    startGame();
+}
+
+// ==================== INIT ====================
+document.getElementById("startButton").addEventListener("click", startGame);
+document.getElementById("restartButton").addEventListener("click", fullRestart);
+document.getElementById("restartBtn").addEventListener("click", fullRestart);
+window.addEventListener("resize", () => { if (gameRunning) resizeCanvas(); });
+
+loadSettings();
+resizeCanvas();
+menu.style.display = "block";
+lastSpawn = Date.now();
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
