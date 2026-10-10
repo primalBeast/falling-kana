@@ -1,1 +1,29 @@
-PLACEHOLDER
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline';">
+<title>Falling Kana かな</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+body{margin:0;background:#0a1625;color:#fff;font-family:system-ui,sans-serif;overflow:hidden;height:100vh}
+canvas{display:block;background:linear-gradient(#0b1a2e,#112b4a)}
+.overlay{position:absolute;top:20px;left:0;width:100%;padding:12px 30px;box-sizing:border-box;display:flex;justify-content:space-between;font-size:22px;font-weight:bold;z-index:10;pointer-events:none;background:rgba(11,26,46,.85);backdrop-filter:blur(12px);border-bottom:3px solid #1e90ff}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="overlay"><div>Score: <span id="score">0</span> (Best: <span id="highScore">0</span>)</div><div>Level <span id="level">1</span></div><div>Accuracy: <span id="accuracy">0</span>%</div></div>
+<div id="inputDisplay" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:32px;background:rgba(0,0,0,.5);padding:12px 40px;border-radius:12px;display:none"></div>
+<script>
+const canvas=document.getElementById("canvas"),ctx=canvas.getContext("2d");
+let score=0,highScore=0,paused=false,gameRunning=false;
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight}resize();addEventListener("resize",resize);
+try{highScore=parseInt(localStorage.getItem("kanaHighScore")||"0")}catch(e){}
+document.getElementById("highScore").textContent=highScore;
+addEventListener("keydown",e=>{if(e.key===" "){paused=!paused;document.getElementById("inputDisplay").textContent=paused?"PAUSED":"";document.getElementById("inputDisplay").style.display="block"}});
+function loop(){if(!paused){ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#fff";ctx.font="48px 'Noto Sans JP'";ctx.fillText("か",canvas.width/2,canvas.height/2)}requestAnimationFrame(loop)}loop();
+</script>
+</body>
+</html>
